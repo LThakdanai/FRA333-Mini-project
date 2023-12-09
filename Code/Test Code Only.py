@@ -1,22 +1,24 @@
-from sympy import Matrix
+import sympy as sp
 
-def symbolic_inverse_matrix(matrix):
-    try:
-        inverse = matrix.inv()
-        return inverse
-    except ValueError:
-        return None  # Return None if the matrix is not invertible
+# Define symbolic variables
+theta1, theta2, theta3 = sp.symbols('theta1 theta2 theta3')
 
-# Example usage:
-# Define a symbolic matrix
-A = Matrix([[1, 2, 3], [0, 1, 4], [5, 6, 0]])
+# Lengths of links
+l1, l2, l3 = 1, 1, 1  # Replace with actual lengths
 
-# Get the inverse matrix
-inverse_A = symbolic_inverse_matrix(A)
+# Forward kinematics equations
+x = l1 * sp.cos(theta1) + l2 * sp.cos(theta1 + theta2) + l3 * sp.cos(theta1 + theta2 + theta3)
+y = l1 * sp.sin(theta1) + l2 * sp.sin(theta1 + theta2) + l3 * sp.sin(theta1 + theta2 + theta3)
 
-# Print the result
-if inverse_A:
-    print("Inverse of A:")
-    print(inverse_A)
-else:
-    print("Matrix A is not invertible.")
+# Given end-effector position (replace with desired values)
+x_desired = 2
+y_desired = 2
+
+# Solve inverse kinematics
+# Substitute the desired position into the forward kinematics equations
+inverse_solution = sp.solve((x - x_desired, y - y_desired), (theta1, theta2, theta3))
+
+# Print the solutions
+print("Inverse Kinematics Solutions:")
+for solution in inverse_solution:
+    print(f"Theta1: {solution[theta1]}, Theta2: {solution[theta2]}, Theta3: {solution[theta3]}")
