@@ -15,9 +15,9 @@ from matplotlib.widgets import Slider
 
 # The home coordinates will be [0,0,0]
 coord_home = [0,0,0]
-coord_end = [0,0,0]
+coord_end = [0, 0,0]
 
-len_coxa = 5
+len_coxa = 2
 len_femur = 10
 len_tibia = 10
 
@@ -51,7 +51,7 @@ def forwardKinematics(ang1, ang2, ang3):
     print("Angle 1: ", ang1,"Angle 2: ", ang2,"Angle 3: ", ang3 )
     # point 1
     trans = np.dot(np.matrix([[1,0,0,0],
-                        [0,1,0,0],
+                        [0,1,0,len_coxa],
                         [0,0,1,0],
                         [0,0,0,1]]),np.matrix([coord_home[0],coord_home[1],coord_home[2],1]).transpose())
     point1[0] = trans[(0,0)]
@@ -69,7 +69,7 @@ def forwardKinematics(ang1, ang2, ang3):
 
 
     # point 2
-    trans = np.dot(np.matrix([[1,0,0,0],
+    trans = np.dot(np.matrix([[1,0,0,len_femur],
                         [0,1,0,0],
                         [0,0,1,0],
                         [0,0,0,1]]),np.matrix([coord_home[0],coord_home[1],coord_home[2],1]).transpose())
@@ -87,7 +87,7 @@ def forwardKinematics(ang1, ang2, ang3):
     point2[2] = rot[(2,0)]
 
     trans = np.dot(np.matrix([[1,0,0,0],
-                        [0,1,0,0],
+                        [0,1,0,len_coxa],
                         [0,0,1,0],
                         [0,0,0,1]]),np.matrix([point2[0],point2[1],point2[2],1]).transpose())
     point2[0] = trans[(0,0)]
@@ -105,7 +105,7 @@ def forwardKinematics(ang1, ang2, ang3):
 
 
     # point 3
-    trans = np.dot(np.matrix([[1,0,0,0],
+    trans = np.dot(np.matrix([[1,0,0,len_tibia],
                         [0,1,0,0],
                         [0,0,1,0],
                         [0,0,0,1]]),np.matrix([coord_home[0],coord_home[1],coord_home[2],1]).transpose())
@@ -113,16 +113,16 @@ def forwardKinematics(ang1, ang2, ang3):
     point3[1] = trans[(1,0)]
     point3[2] = trans[(2,0)]
 
-    rot = np.dot(np.matrix([[1,0,0,0],
-                        [0,math.cos(math.radians(ang3)),-math.sin(math.radians(ang3)),0],
-                        [0,math.sin(math.radians(ang3)),math.cos(math.radians(ang3)),0],
+    rot = np.dot(np.matrix([[math.cos(math.radians(ang3)),0,math.sin(math.radians(ang3)),0],
+                        [0,1,0,0],
+                        [-math.sin(math.radians(ang3)),0,math.cos(math.radians(ang3)),0],
                         [0,0,0,1]]),np.matrix([point3[0],point3[1],point3[2],1]).transpose())
     
     point3[0] = rot[(0,0)]
     point3[1] = rot[(1,0)]
     point3[2] = rot[(2,0)]
 
-    trans = np.dot(np.matrix([[1,0,0,0],
+    trans = np.dot(np.matrix([[1,0,0,len_femur],
                         [0,1,0,0],
                         [0,0,1,0],
                         [0,0,0,1]]),np.matrix([point3[0],point3[1],point3[2],1]).transpose())
@@ -140,7 +140,7 @@ def forwardKinematics(ang1, ang2, ang3):
     point3[2] = rot[(2,0)] 
     
     trans = np.dot(np.matrix([[1,0,0,0],
-                        [0,1,0,0],
+                        [0,1,0,len_coxa],
                         [0,0,1,0],
                         [0,0,0,1]]),np.matrix([point3[0],point3[1],point3[2],1]).transpose())
     point3[0] = trans[(0,0)]
@@ -159,7 +159,6 @@ def forwardKinematics(ang1, ang2, ang3):
 
     return point1, point2, point3
 
-
 def coord2deg(x, y): 
     if x >= 0 and y >= 0:  
         angle = math.degrees(math.atan(y/x))
@@ -173,47 +172,34 @@ def coord2deg(x, y):
 
 
 def inverseKinematics(pos):
-    # Extract x, y, z coordinates from the input position
+ 
     x, y, z = pos[0], pos[1], pos[2]
+    x += 0.0000001 # we need to avoid zero-division error
 
-    # To avoid potential zero-division error, add a very small value to x
-    x += 0.0000001
+    theta1 = coord2deg(x, y)    # this is the angle from x-axis in anticlockwise rotation
 
-    # Calculate theta1 using coord2deg function; represents angle from x-axis in anticlockwise rotation
-    theta1 = coord2deg(x, y)
-
-    # Remove offset due to the length of coxa from x and y coordinates
-    x -= 0 * math.cos(math.radians(theta1))
-    y -= 0 * math.sin(math.radians(theta1))
-
-    # Normalize theta1 within the range (-180, 180) +++
-    if theta1 > 180:
+    # remove the offset due to the length of coxa    
+    x -= len_coxa*math.cos(math.radians(theta1))
+    y -= len_coxa*math.sin(math.radians(theta1))
+    
+    if theta1 > 180: 
         theta1 -= 360
 
-    # Calculate the distance P from the origin (0, 0) to the point (x, y)
-    P = math.sqrt(x ** 2 + y ** 2)
-
-    # Check if the distance from the origin to the target point is within reachable distance
-    if math.sqrt(x ** 2 + y ** 2 + z ** 2) > len_femur + len_tibia:
-        print("MATH ERROR: Coordinate is too far")
-        # If out of reach, return theta1 and zeros for theta2 and theta3
+    P = math.sqrt(x**2 + y**2)
+        
+    if math.sqrt(x**2 + y**2 + z**2) > len_femur + len_tibia: 
+        print("MATH ERROR: coordinate too far")
         return [theta1, 0, 0]
+    
+    alpha = math.atan(z/P)
 
-    # Calculate alpha angle using arctan of z/P
-    alpha = math.atan(z / P)
-
-    # Calculate distance c using Pythagorean theorem
-    c = math.sqrt(P ** 2 + z ** 2)
-
-    # Calculate beta angle using law of cosines
-    beta = math.acos((len_femur ** 2 + c ** 2 - len_tibia ** 2) / (2 * len_femur * c))
-
-    # Calculate theta2 and theta3 using inverse trigonometric functions
-    theta2 = -math.atan2(z,P)
-    theta3 = 0
-
-    # Return the calculated angles rounded to 2 decimal places
-    return round(theta1, 2), round(450 - math.degrees(theta2), 2), round(theta3, 2) ,P
+    c = math.sqrt(P**2 + z**2)
+    
+    beta = math.acos((len_femur**2+c**2-len_tibia**2)/(2*len_femur*c))
+    theta2 = beta + alpha
+    theta3 = math.acos((len_tibia**2+len_femur**2-c**2)/(2*len_tibia*len_femur)) - math.pi
+    
+    return round(theta1,2), round(360 - math.degrees(theta2),2), round(360-math.degrees(theta3),2)
 
 
 
@@ -223,7 +209,7 @@ def plotUpdateX(val = 0):
     coord_end[0] = val
     ax.clear()
 
-    ang1, ang2, ang3, P = inverseKinematics(coord_end)
+    ang1, ang2, ang3 = inverseKinematics(coord_end)
     point1, point2, point3 = forwardKinematics(ang1, ang2, ang3)
 
     ax.plot([coord_home[0],point1[0]],[coord_home[1],point1[1]],[coord_home[2],point1[2]])
@@ -237,16 +223,13 @@ def plotUpdateX(val = 0):
     ax.plot([-10,10],[0,0],[0,0], color='red')
     ax.plot([0,0],[-10,10],[0,0], color='blue')
     ax.plot([0,0],[0,0],[-10,10], color='green')
-
-    ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2-450}\nAngle 3: {ang3}\nP: {P}", color='black', fontsize=10)
-
 
 def plotUpdateY(val = 0):
     global coord_end
     coord_end[1] = val
     ax.clear()
 
-    ang1, ang2, ang3, P = inverseKinematics(coord_end)
+    ang1, ang2, ang3 = inverseKinematics(coord_end)
     point1, point2, point3 = forwardKinematics(ang1, ang2, ang3)
 
     ax.plot([coord_home[0],point1[0]],[coord_home[1],point1[1]],[coord_home[2],point1[2]])
@@ -260,16 +243,13 @@ def plotUpdateY(val = 0):
     ax.plot([-10,10],[0,0],[0,0], color='red')
     ax.plot([0,0],[-10,10],[0,0], color='blue')
     ax.plot([0,0],[0,0],[-10,10], color='green')
-
-    ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2-450}\nAngle 3: {ang3}\nP: {P}", color='black', fontsize=10)
-
 
 def plotUpdateZ(val = 0):
     global coord_end
     coord_end[2] = val
     ax.clear()
 
-    ang1, ang2, ang3 , P= inverseKinematics(coord_end)
+    ang1, ang2, ang3 = inverseKinematics(coord_end)
     point1, point2, point3 = forwardKinematics(ang1, ang2, ang3)
 
     ax.plot([coord_home[0],point1[0]],[coord_home[1],point1[1]],[coord_home[2],point1[2]])
@@ -283,12 +263,12 @@ def plotUpdateZ(val = 0):
     ax.plot([-10,10],[0,0],[0,0], color='red')
     ax.plot([0,0],[-10,10],[0,0], color='blue')
     ax.plot([0,0],[0,0],[-10,10], color='green')
-    
-    ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2-450}\nAngle 3: {ang3}\nP: {P}", color='black', fontsize=10)
-
 
 
 sliderX.on_changed(plotUpdateX)
 sliderY.on_changed(plotUpdateY)
 sliderZ.on_changed(plotUpdateZ)
+plt.show()
+
+
 plt.show()
