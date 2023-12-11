@@ -31,14 +31,9 @@ point1 = [0,0,0]
 point2 = [0,-5,0]
 point3 = [0,0,0]
 
-
-
-
-
-
 fig = plt.figure(figsize=(4,4))
 
-ax = fig.add_subplot(111, projection='3d')
+ax = fig.add_subplot(111, projection='3d') 
 
 axSlider = plt.axes([0.2, 0.1, 0.65, 0.03] )
 aySlider = plt.axes([0.2, 0.065, 0.65, 0.03] )
@@ -241,7 +236,11 @@ def plotUpdateX(val = 0):
     ax.plot([0,0],[0,0],[-10,10], color='green')
 
     ax.plot([coord_home[0], coord_end[0]], [coord_home[1], coord_end[1]], [coord_home[2], coord_end[2]], color='black')
-    ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2}\nAngle 3: {ang3}\nP: {P}", color='black', fontsize=10)
+    ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2}\nAngle 3: {ang3}\nP: {P}\nCoordinate_end : {coord_end}" , color='black', fontsize=10)
+
+    for i in range(9):
+        ax.scatter(save_for_run[i][0], save_for_run[i][1], save_for_run[i][2], color='black', s=50, label=f'Saved Position {i}')
+
 
 
 def plotUpdateY(val = 0):
@@ -265,17 +264,18 @@ def plotUpdateY(val = 0):
     ax.plot([0,0],[0,0],[-10,10], color='green')
 
     ax.plot([coord_home[0], coord_end[0]], [coord_home[1], coord_end[1]], [coord_home[2], coord_end[2]], color='black')
+    ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2}\nAngle 3: {ang3}\nP: {P}\nCoordinate_end : {coord_end}" , color='black', fontsize=10)
 
-
+    for i in range(9):
+        ax.scatter(save_for_run[i][0], save_for_run[i][1], save_for_run[i][2], color='black', s=50, label=f'Saved Position {i}')
     
-    ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2}\nAngle 3: {ang3}\nP: {P}", color='black', fontsize=10)
 
 
 def plotUpdateZ(val = 0):
     global coord_end
     coord_end[2] = val
     ax.clear()
-
+    
     ang1, ang2, ang3 , P= inverseKinematics(coord_end)
     point1, point2, point3 = forwardKinematics(ang1, ang2, ang3)
 
@@ -291,32 +291,55 @@ def plotUpdateZ(val = 0):
     ax.plot([0,0],[-10,10],[0,0], color='blue')
     ax.plot([0,0],[0,0],[-10,10], color='green')
 
-    
-
     ax.plot([coord_home[0], coord_end[0]], [coord_home[1], coord_end[1]], [coord_home[2], coord_end[2]], color='black')
-   
-    ax.plot([coord_home[0], coord_end[0]], [coord_home[1], coord_end[1]], [coord_home[2], coord_end[2]], color='red')
-    ax.plot([coord_home[0], coord_end[0]], [coord_home[1], coord_end[1]], [coord_home[2], coord_end[2]], color='green')
-    ax.plot([coord_home[0], coord_end[0]], [coord_home[1], coord_end[1]], [coord_home[2], coord_end[2]], color='blue')
+    ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2}\nAngle 3: {ang3}\nP: {P}\nCoordinate_end : {coord_end}" , color='black', fontsize=10)    
 
-
-    ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2}\nAngle 3: {ang3}\nP: {P}", color='black', fontsize=10)
+    for i in range(9):
+        ax.scatter(save_for_run[i][0], save_for_run[i][1], save_for_run[i][2], color='black', s=50, label=f'Saved Position {i}')
     
 
-position = []
-save_button_ax = plt.axes([0.8, 0.01, 0.1, 0.04])  # ตำแหน่งของปุ่ม Save
+
+save_button_ax = plt.axes([0.1, 0.8, 0.04, 0.04])  # ตำแหน่งของปุ่ม Save
 save_button = Button(save_button_ax, 'Save', color='lightgoldenrodyellow', hovercolor='0.975')
 
+start_button_ax = plt.axes([0.05, 0.8, 0.04, 0.04])  # ตำแหน่งของปุ่ม Save
+start_button = Button(start_button_ax, 'start', color='lightgoldenrodyellow', hovercolor='0.975')
+
+count = 0
+line = 0
+scatter_list = []
+
+
+save_pos = [0,0,0]  # กำหนดให้เป็นลิสต์ขนาด 3 ตำแหน่ง ซึ่งจะใช้เก็บค่า coord_end ปัจจุบัน
+save_for_run = [[] for _ in range(10)]  # สร้างลิสต์ขนาด 10 ตัว แต่ละตัวเป็นลิสต์เปล่าๆ
+
 def save_position(event):
+    global count
     global coord_end
-    # ทำการบันทึกค่า coord_end ที่ได้ปัจจุบัน
-    with open('saved_position.txt', 'w') as file:
-        file.write(f"Current position: {coord_end}")
-        position = coord_end
-    ax.scatter(coord_end[0], coord_end[1], coord_end[2], color='black', s=50, label='Saved Position')
-    plt.legend()  # เพิ่มคำอธิบาย (legend) ลงในกราฟ
-    plt.draw()  # เพื่อให้กราฟทำการรีเฟรชเพื่อแสดงจุดใหม่
-    print(f"Saved position:",position)
+    global line
+    global save_pos
+
+    if line < 10:
+        with open('saved_position.txt', 'a') as file:
+            file.write(f"Current position: {coord_end}\n")
+            save_for_run[line] = list(coord_end)  # บันทึก coord_end ลงใน save_for_run ตาม line
+            save_pos = list(coord_end)  # ปรับค่าของ save_pos เพื่อให้เก็บค่า coord_end ปัจจุบัน
+
+        ax.scatter(coord_end[0], coord_end[1], coord_end[2], color='black', s=50, label='Saved Position')
+
+        plt.text(-0.8, -1.5 + count, f"Saved coordinates {line}: {save_for_run[line]}", ha='left')
+
+        count -= 0.5
+        line += 1
+        print(save_for_run)
+        plt.legend()
+        plt.draw()
+    else:
+        print("Exceeded maximum allowed saves (10)")
+
+
+
+
 
 save_button.on_clicked(save_position)
 
