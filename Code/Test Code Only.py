@@ -12,6 +12,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.widgets import Slider
+from matplotlib.widgets import Button
+
 
 # The home coordinates will be [0,0,0]
 coord_home = [0,0,0]
@@ -209,11 +211,11 @@ def inverseKinematics(pos):
     beta = math.acos((len_femur ** 2 + c ** 2 - len_tibia ** 2) / (2 * len_femur * c))
 
     # Calculate theta2 and theta3 using inverse trigonometric functions
-    theta2 = -math.atan2(z,P)
+    theta2 = math.atan2(z,P)
     theta3 = 0
 
     # Return the calculated angles rounded to 2 decimal places
-    return round(theta1, 2), round(450 - math.degrees(theta2), 2), round(theta3, 2) ,P
+    return round(theta1, 2), round(math.degrees(theta2), 2), round(theta3, 2) ,P
 
 
 
@@ -238,7 +240,8 @@ def plotUpdateX(val = 0):
     ax.plot([0,0],[-10,10],[0,0], color='blue')
     ax.plot([0,0],[0,0],[-10,10], color='green')
 
-    ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2-450}\nAngle 3: {ang3}\nP: {P}", color='black', fontsize=10)
+    ax.plot([coord_home[0], coord_end[0]], [coord_home[1], coord_end[1]], [coord_home[2], coord_end[2]], color='black')
+    ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2}\nAngle 3: {ang3}\nP: {P}", color='black', fontsize=10)
 
 
 def plotUpdateY(val = 0):
@@ -261,7 +264,11 @@ def plotUpdateY(val = 0):
     ax.plot([0,0],[-10,10],[0,0], color='blue')
     ax.plot([0,0],[0,0],[-10,10], color='green')
 
-    ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2-450}\nAngle 3: {ang3}\nP: {P}", color='black', fontsize=10)
+    ax.plot([coord_home[0], coord_end[0]], [coord_home[1], coord_end[1]], [coord_home[2], coord_end[2]], color='black')
+
+
+    
+    ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2}\nAngle 3: {ang3}\nP: {P}", color='black', fontsize=10)
 
 
 def plotUpdateZ(val = 0):
@@ -283,9 +290,35 @@ def plotUpdateZ(val = 0):
     ax.plot([-10,10],[0,0],[0,0], color='red')
     ax.plot([0,0],[-10,10],[0,0], color='blue')
     ax.plot([0,0],[0,0],[-10,10], color='green')
-    
-    ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2-450}\nAngle 3: {ang3}\nP: {P}", color='black', fontsize=10)
 
+    
+
+    ax.plot([coord_home[0], coord_end[0]], [coord_home[1], coord_end[1]], [coord_home[2], coord_end[2]], color='black')
+   
+    ax.plot([coord_home[0], coord_end[0]], [coord_home[1], coord_end[1]], [coord_home[2], coord_end[2]], color='red')
+    ax.plot([coord_home[0], coord_end[0]], [coord_home[1], coord_end[1]], [coord_home[2], coord_end[2]], color='green')
+    ax.plot([coord_home[0], coord_end[0]], [coord_home[1], coord_end[1]], [coord_home[2], coord_end[2]], color='blue')
+
+
+    ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2}\nAngle 3: {ang3}\nP: {P}", color='black', fontsize=10)
+    
+
+position = []
+save_button_ax = plt.axes([0.8, 0.01, 0.1, 0.04])  # ตำแหน่งของปุ่ม Save
+save_button = Button(save_button_ax, 'Save', color='lightgoldenrodyellow', hovercolor='0.975')
+
+def save_position(event):
+    global coord_end
+    # ทำการบันทึกค่า coord_end ที่ได้ปัจจุบัน
+    with open('saved_position.txt', 'w') as file:
+        file.write(f"Current position: {coord_end}")
+        position = coord_end
+    ax.scatter(coord_end[0], coord_end[1], coord_end[2], color='black', s=50, label='Saved Position')
+    plt.legend()  # เพิ่มคำอธิบาย (legend) ลงในกราฟ
+    plt.draw()  # เพื่อให้กราฟทำการรีเฟรชเพื่อแสดงจุดใหม่
+    print(f"Saved position:",position)
+
+save_button.on_clicked(save_position)
 
 
 sliderX.on_changed(plotUpdateX)
