@@ -216,6 +216,8 @@ def inverseKinematics(pos):
 
 
 def plotUpdateX(val = 0):
+    global save_for_run
+    global ax
     global coord_end
     coord_end[0] = val
     ax.clear()
@@ -238,12 +240,31 @@ def plotUpdateX(val = 0):
     ax.plot([coord_home[0], coord_end[0]], [coord_home[1], coord_end[1]], [coord_home[2], coord_end[2]], color='black')
     ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2}\nAngle 3: {ang3}\nP: {P}\nCoordinate_end : {coord_end}" , color='black', fontsize=10)
 
-    for i in range(9):
-        ax.scatter(save_for_run[i][0], save_for_run[i][1], save_for_run[i][2], color='black', s=50, label=f'Saved Position {i}')
+    count = sum(bool(sublist) for sublist in save_for_run)
+    print(f"coordinate point = {count}")
+
+    if len(save_for_run) > 0:
+        for i in range(count):  # ใช้ count ไม่ได้เพราะบางครั้ง count อาจจะมีค่าเกินไป
+            if i < len(save_for_run):  # ตรวจสอบว่า index ที่ใช้ไม่เกินขนาดของ save_for_run
+                ax.scatter(
+                    save_for_run[i][0],
+                    save_for_run[i][1],
+                    save_for_run[i][2],
+                    color='black',
+                    s=50,
+                    label=f'Saved Position {i}'
+                )
+    else:
+        print("No positions saved.")
+
+    plt.draw()
+    
 
 
 
 def plotUpdateY(val = 0):
+    global save_for_run
+    global ax
     global coord_end
     coord_end[1] = val
     ax.clear()
@@ -265,18 +286,36 @@ def plotUpdateY(val = 0):
 
     ax.plot([coord_home[0], coord_end[0]], [coord_home[1], coord_end[1]], [coord_home[2], coord_end[2]], color='black')
     ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2}\nAngle 3: {ang3}\nP: {P}\nCoordinate_end : {coord_end}" , color='black', fontsize=10)
+    
+    count = sum(bool(sublist) for sublist in save_for_run)
+    print(f"coordinate point = {count}")
 
-    for i in range(9):
-        ax.scatter(save_for_run[i][0], save_for_run[i][1], save_for_run[i][2], color='black', s=50, label=f'Saved Position {i}')
+    if len(save_for_run) > 0:
+        for i in range(count):  # ใช้ count ไม่ได้เพราะบางครั้ง count อาจจะมีค่าเกินไป
+            if i < len(save_for_run):  # ตรวจสอบว่า index ที่ใช้ไม่เกินขนาดของ save_for_run
+                ax.scatter(
+                    save_for_run[i][0],
+                    save_for_run[i][1],
+                    save_for_run[i][2],
+                    color='black',
+                    s=50,
+                    label=f'Saved Position {i}'
+                )
+    else:
+        print("No positions saved.")
+
+    plt.draw()
     
 
 
 def plotUpdateZ(val = 0):
+    global save_for_run
+    global ax
     global coord_end
     coord_end[2] = val
     ax.clear()
     
-    ang1, ang2, ang3 , P= inverseKinematics(coord_end)
+    ang1, ang2, ang3 , P = inverseKinematics(coord_end)
     point1, point2, point3 = forwardKinematics(ang1, ang2, ang3)
 
     ax.plot([coord_home[0],point1[0]],[coord_home[1],point1[1]],[coord_home[2],point1[2]])
@@ -294,25 +333,39 @@ def plotUpdateZ(val = 0):
     ax.plot([coord_home[0], coord_end[0]], [coord_home[1], coord_end[1]], [coord_home[2], coord_end[2]], color='black')
     ax.text(-10, -10, -10, f"Angle 1: {ang1}\nAngle 2: {ang2}\nAngle 3: {ang3}\nP: {P}\nCoordinate_end : {coord_end}" , color='black', fontsize=10)    
 
-    for i in range(9):
-        ax.scatter(save_for_run[i][0], save_for_run[i][1], save_for_run[i][2], color='black', s=50, label=f'Saved Position {i}')
-    
+    count = sum(bool(sublist) for sublist in save_for_run)
+    print(f"coordinate point = {count}")
 
+    # Check if there are enough points in save_for_run before accessing by index
+    if len(save_for_run) > 0:
+        for i in range(count):  # ใช้ count ไม่ได้เพราะบางครั้ง count อาจจะมีค่าเกินไป
+            if i < len(save_for_run):  # ตรวจสอบว่า index ที่ใช้ไม่เกินขนาดของ save_for_run
+                ax.scatter(
+                    save_for_run[i][0],
+                    save_for_run[i][1],
+                    save_for_run[i][2],
+                    color='black',
+                    s=50,
+                    label=f'Saved Position {i}'
+                )
+    else:
+        print("No positions saved.")
 
-save_button_ax = plt.axes([0.1, 0.8, 0.04, 0.04])  # ตำแหน่งของปุ่ม Save
-save_button = Button(save_button_ax, 'Save', color='lightgoldenrodyellow', hovercolor='0.975')
-
-start_button_ax = plt.axes([0.05, 0.8, 0.04, 0.04])  # ตำแหน่งของปุ่ม Save
-start_button = Button(start_button_ax, 'start', color='lightgoldenrodyellow', hovercolor='0.975')
-
-count = 0
-line = 0
-scatter_list = []
-
+    plt.draw()
 
 save_pos = [0,0,0]  # กำหนดให้เป็นลิสต์ขนาด 3 ตำแหน่ง ซึ่งจะใช้เก็บค่า coord_end ปัจจุบัน
 save_for_run = [[] for _ in range(10)]  # สร้างลิสต์ขนาด 10 ตัว แต่ละตัวเป็นลิสต์เปล่าๆ
 
+save_button_ax = plt.axes([0.1, 0.8, 0.04, 0.04])  # ตำแหน่งของปุ่ม Save
+save_button = Button(save_button_ax, 'Save', color='lightgoldenrodyellow', hovercolor='0.975')
+
+start_button_ax = plt.axes([0.05, 0.8, 0.04, 0.04])  # ตำแหน่งของปุ่ม Start
+start_button = Button(start_button_ax, 'Start', color='lightgoldenrodyellow', hovercolor='0.975')
+
+count = 0
+line = 0
+scatter_list = []
+    
 def save_position(event):
     global count
     global coord_end
@@ -332,15 +385,28 @@ def save_position(event):
         count -= 0.5
         line += 1
         print(save_for_run)
-        plt.legend()
         plt.draw()
-    else:
-        print("Exceeded maximum allowed saves (10)")
+    else :
+        plt.text(-0.8, -1.5 + count, f"Exceeded maximum allowed saves (10) Please Reset Your Program", ha='left')
+    return save_for_run
+
+def start_button_clicked(event):
+    global save_for_run
+    global ax
+    count = sum(bool(sublist) for sublist in save_for_run)
+    i = 0
+    print(f"coordinate point = {count}")
+    for i in range(count - 1):  # ลบ 1 เพื่อให้ i+1 ไม่เกินขนาดของ list
+        print('i',i)
+        start_point = save_for_run[i]  # จุดเริ่มต้น
+        end_point = save_for_run[i + 1]  # จุดปลายทาง
+
+        # เริ่มต้นการวาดเส้นทางใหม่
+        ax.plot([start_point[0], end_point[0]], [start_point[1], end_point[1]], [start_point[2], end_point[2]], color='orange')
+        plt.draw()
 
 
-
-
-
+start_button.on_clicked(start_button_clicked)
 save_button.on_clicked(save_position)
 
 
