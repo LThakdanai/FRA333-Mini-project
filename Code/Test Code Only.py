@@ -7,6 +7,7 @@
 import math
 from ntpath import join
 from turtle import color
+from Dynamic import*
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -338,6 +339,7 @@ def plotUpdateZ(val = 0):
 
     plt.draw()
 
+
 save_pos = [0,0,0]  # กำหนดให้เป็นลิสต์ขนาด 3 ตำแหน่ง ซึ่งจะใช้เก็บค่า coord_end ปัจจุบัน
 save_for_run = [[] for _ in range(10)]  # สร้างลิสต์ขนาด 10 ตัว แต่ละตัวเป็นลิสต์เปล่าๆ
 
@@ -378,9 +380,9 @@ def save_position(event):
 def start_button_clicked(event):
     global save_for_run
     global ax
-    count = sum(bool(sublist) for sublist in save_for_run)
-    i = 0
-    print(f"coordinate point = {count}")
+    #count = sum(bool(sublist) for sublist in save_for_run)
+    #i = 0
+    #print(f"coordinate point = {count}")
     move_to_saved_position()
 
 def move_to_saved_position():
