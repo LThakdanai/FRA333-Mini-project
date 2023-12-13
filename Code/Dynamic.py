@@ -1,8 +1,9 @@
 import sympy as sp
+import math
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.animation import FuncAnimation
 
-q1 = 60
-q2 = 30
-q3 = 0
 # Link 1
 m1 = 2.492  # kg
 com1x = -90.56 / 1000  # m
@@ -30,6 +31,9 @@ com3z = 31 / 1000
 Ixx3 = 1260000.00 * 1e-9
 Iyy3 = 655200.00 * 1e-9
 Izz3 = 1864800.00 * 1e-9
+
+
+TAU_numpy = None
 
 def dynamic(q1,q2,q3):
     DH = sp.Matrix([
@@ -159,15 +163,11 @@ def dynamic(q1,q2,q3):
 
 
     # Calculate the inverse of the inertia matrix
-    #invB = B.inv()
-    #invB = sp.Matrix([[1,1,1],[1,1,1],[1,1,1]])
-
-
 
      # Define symbols
     
-    qdot1 = 0
-    qdot2 = 0
+    qdot1 = 0.1
+    qdot2 = 0.1
     qdot3 = 0
 
     # Function to compute cijk
@@ -248,7 +248,9 @@ def dynamic(q1,q2,q3):
     TAU = sp.Matrix([tau1, tau2, tau3])
 
     TAU = B * qdotdot + C * qdot + Fv * qdot + G
-    print("Tau",TAU)
+    global TAU_numpy
+    TAU_numpy = np.array(TAU).astype(np.float64)
+    print("Tau",TAU_numpy)
 
+    return TAU_numpy
 
-dynamic(q1,q2,q3)
