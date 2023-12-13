@@ -179,31 +179,12 @@ def inverseKinematics(pos):
     # Calculate theta1 using coord2deg function; represents angle from x-axis in anticlockwise rotation
     theta1 = coord2deg(x, y)
 
-    # Remove offset due to the length of coxa from x and y coordinates
-    x -= 0 * math.cos(math.radians(theta1))
-    y -= 0 * math.sin(math.radians(theta1))
-
     # Normalize theta1 within the range (-180, 180) +++
-    if theta1 > 180:
-        theta1 -= 360
+    #if theta1 > 180:
+    #    theta1 -= 360
 
     # Calculate the distance P from the origin (0, 0) to the point (x, y)
     P = math.sqrt(x ** 2 + y ** 2)
-
-    # Check if the distance from the origin to the target point is within reachable distance
-    if math.sqrt(x ** 2 + y ** 2 + z ** 2) > len_femur + len_tibia:
-        print("MATH ERROR: Coordinate is too far")
-        # If out of reach, return theta1 and zeros for theta2 and theta3
-        return [theta1, 0, 0]
-
-    # Calculate alpha angle using arctan of z/P
-    alpha = math.atan(z / P)
-
-    # Calculate distance c using Pythagorean theorem
-    c = math.sqrt(P ** 2 + z ** 2)
-
-    # Calculate beta angle using law of cosines
-    beta = math.acos((len_femur ** 2 + c ** 2 - len_tibia ** 2) / (2 * len_femur * c))
 
     # Calculate theta2 and theta3 using inverse trigonometric functions
     theta2 = math.atan2(z,P)
@@ -254,6 +235,7 @@ def plotUpdateX(val = 0):
                     s=50,
                     label=f'Saved Position {i}'
                 )
+                ax.text(save_for_run[i][0], save_for_run[i][1], save_for_run[i][2], f'{i}', color='red')
     else:
         print("No positions saved.")
 
@@ -301,6 +283,7 @@ def plotUpdateY(val = 0):
                     s=50,
                     label=f'Saved Position {i}'
                 )
+                ax.text(save_for_run[i][0], save_for_run[i][1], save_for_run[i][2], f'{i}', color='red')
     else:
         print("No positions saved.")
 
@@ -348,6 +331,8 @@ def plotUpdateZ(val = 0):
                     s=50,
                     label=f'Saved Position {i}'
                 )
+                ax.text(save_for_run[i][0], save_for_run[i][1], save_for_run[i][2], f'{i}', color='red')
+
     else:
         print("No positions saved.")
 
@@ -396,14 +381,44 @@ def start_button_clicked(event):
     count = sum(bool(sublist) for sublist in save_for_run)
     i = 0
     print(f"coordinate point = {count}")
-    for i in range(count - 1):  # ลบ 1 เพื่อให้ i+1 ไม่เกินขนาดของ list
-        print('i',i)
-        start_point = save_for_run[i]  # จุดเริ่มต้น
-        end_point = save_for_run[i + 1]  # จุดปลายทาง
+    move_to_saved_position()
 
-        # เริ่มต้นการวาดเส้นทางใหม่
-        ax.plot([start_point[0], end_point[0]], [start_point[1], end_point[1]], [start_point[2], end_point[2]], color='orange')
-        plt.draw()
+def move_to_saved_position():
+    global coord_end
+    global save_for_run
+    
+    count = sum(bool(sublist) for sublist in save_for_run)
+    if count >= 2:
+        # Determine the step size for each coordinate axis
+        step_size = 0.1  # Adjust this value according to the desired speed of movement
+        tolerance = 0.01  # Set a tolerance for comparing coordinates
+        
+        for i in range(count - 1):  # Loop through save_for_run elements
+            start_point = save_for_run[i]  # Starting point
+            end_point = save_for_run[i + 1]  # Destination
+
+            # Set coord_end to the starting position (save_for_run[i])
+            coord_end = start_point + [0.1,0.1,0.1]
+
+            # Update coord_end iteratively towards the destination
+            while any(abs(coord_end[j] - end_point[j]) > tolerance for j in range(3)):
+                for j in range(3):
+                    if abs(coord_end[j] - end_point[j]) > tolerance:  # Compare the absolute difference with tolerance
+                        if coord_end[j] < end_point[j]:
+                            coord_end[j] += step_size
+                        else:
+                            coord_end[j] -= step_size
+
+                # Update the plot for each step with orange color
+                plotUpdateX(coord_end[0])
+                plotUpdateY(coord_end[1])
+                plotUpdateZ(coord_end[2])
+                plt.pause(0.01)  # Adjust the pause duration as needed for visualization
+    else:
+        print("At least two positions need to be saved to initiate movement.")
+
+
+
 
 
 start_button.on_clicked(start_button_clicked)
